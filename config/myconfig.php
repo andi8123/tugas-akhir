@@ -1,0 +1,11 @@
+<?php
+
+return [
+    'api' => [
+        'base_url' => env('API_BASE_URL', null),
+        'mock_url' => env('API_MOCK_URL', null),
+    ],
+    'login' => [
+        'base_url' => env('LOGIN_BASE_URL', null),
+    ],
+];
