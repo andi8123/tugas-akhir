@@ -14,37 +14,39 @@
                 <div class="card-body">
                     <div class="d-flex align-items-center mb-4">
                         <div class="ms-3">
-                            <h4 class="mb-0">{{ $profile['nama'] }}</h4>
-                            <small class="text-muted">NIM: {{ $profile['nim'] }}</small><br>
-                            <span class="badge bg-primary mt-1">{{ $profile['nama_jurusan'] }}</span>
+                            <h4 class="mb-0">{{ $profile['nama'] ?? '-' }}</h4>
+                            <small class="text-muted">NIM: {{ $profile['nim'] ?? '-' }}</small><br>
+                            <span class="badge bg-primary mt-1">{{ $profile['nama_jurusan'] ?? '-' }}</span>
                         </div>
                     </div>
 
                     <div class="row text-muted" style="font-size: 0.95rem;">
                         <div class="col-md-6 mb-2">
                             <i data-feather="user" class="me-2 text-primary"></i>
-                            <strong>Dosen Wali:</strong> {{ $profile['dosen_wali'] }}
+                            <strong>Dosen Wali:</strong> {{ $profile['dosen_wali'] ?? '-' }}
                         </div>
                         <div class="col-md-6 mb-2">
                             <i data-feather="calendar" class="me-2 text-primary"></i>
                             <strong>Tanggal Lahir:</strong>
-                            {{ \Carbon\Carbon::parse($profile['tgl_lahir'])->format('d M Y') }}
+                            {{ !empty($profile['tgl_lahir']) ? \Carbon\Carbon::parse($profile['tgl_lahir'])->format('d M Y') : '-' }}
                         </div>
                         <div class="col-md-6 mb-2">
                             <i data-feather="layers" class="me-2 text-primary"></i>
-                            <strong>Angkatan:</strong> {{ $profile['angkatan'] }} | Kelas {{ $profile['kelas'] }}
+                            <strong>Angkatan:</strong> {{ $profile['angkatan'] ?? '-' }} | Kelas
+                            {{ $profile['kelas'] ?? '-' }}
                         </div>
                         <div class="col-md-6 mb-2">
                             <i data-feather="map-pin" class="me-2 text-primary"></i>
-                            <strong>Tempat Lahir:</strong> {{ $profile['tmp_lahir'] }}
+                            <strong>Tempat Lahir:</strong> {{ $profile['tmp_lahir'] ?? '-' }}
                         </div>
                         <div class="col-md-6 mb-2">
                             <i data-feather="phone" class="me-2 text-primary"></i>
-                            <strong>No. HP:</strong> {{ $profile['nmr_hp'] }}
+                            <strong>No. HP:</strong> {{ $profile['nmr_hp'] ?? '-' }}
                         </div>
                         <div class="col-md-6 mb-2">
                             <i data-feather="home" class="me-2 text-primary"></i>
-                            <strong>Alamat:</strong> {{ str_replace("\n", ', ', $profile['alamat']) }}
+                            <strong>Alamat:</strong>
+                            {{ isset($profile['alamat']) ? str_replace("\n", ', ', $profile['alamat']) : '-' }}
                         </div>
                     </div>
                 </div>
