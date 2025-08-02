@@ -115,11 +115,20 @@ class UserController extends Controller
         try {
             $masterPengajuan = MasterPengajuan::getAll();
 
-            return view('user.pengajuan.addIndex', ['masterPengajuanList' => $masterPengajuan]);
+            // Tambahkan ini:
+            $userService = new UserService();
+            $profile = $userService->getMyProfile();
+            $profile = $profile->getData()->data->profile;
+
+            return view('user.pengajuan.addIndex', [
+                'masterPengajuanList' => $masterPengajuan,
+                'profile' => $profile // <-- kirim ke blade
+            ]);
         } catch (\Exception $e) {
             return redirect()->back()->with('error', 'Failed to load master pengajuan: ' . $e->getMessage());
         }
     }
+
 
     public function addPengajuan($id)
     {
@@ -285,6 +294,7 @@ class UserController extends Controller
                 'masterSuratCount' => count($masterSurat),
                 'pengajuanCount' => count($pengajuan),
             ];
+            // dd($profile);
 
             return view('dashboard', [
                 'data' => $data,

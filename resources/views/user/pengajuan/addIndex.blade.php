@@ -25,14 +25,37 @@
                                 <td>{{ $item->nama_pengajuan ?? '-' }}</td>
                                 <td>{{ count($item->pengajuan_pertanyaan) ?? 0 }}</td>
                                 <td>{{ $item->master_surat->nama_surat ?? '-' }}</td>
+
+                                @php
+                                    $currentYear = date('Y');
+                                    $currentMonth = date('n'); // 1–12
+                                    $masukTahun = $profile->masuk_tahun;
+
+                                    $semester = ($currentYear - $masukTahun) * 2;
+                                    if ($currentMonth >= 8) {
+                                        $semester += 1;
+                                    }
+
+                                    // Maksimal semester 8
+                                    $semester = min($semester, 8);
+                                @endphp
+
                                 <td>
                                     <div class="d-flex gap-2">
-                                        <a href="{{ route('data-pengajuan.tambah', ['id' => $item->id]) }}"
-                                            class="btn btn-warning btn-sm">
-                                            Buat Pengajuan
-                                        </a>
+                                        @if ($semester >= $item->minimum_semester)
+                                            <a href="{{ route('data-pengajuan.tambah', ['id' => $item->id]) }}"
+                                                class="btn btn-warning btn-sm">
+                                                Buat Pengajuan
+                                            </a>
+                                        @else
+                                            <span class="text-danger small fst-italic">
+                                                Minimal Semester {{ $item->minimum_semester }} untuk mengajukan
+                                            </span>
+                                        @endif
                                     </div>
                                 </td>
+
+
                             </tr>
                         @endforeach
 

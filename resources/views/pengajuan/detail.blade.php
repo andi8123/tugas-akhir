@@ -46,17 +46,21 @@
                         @if ($nomorSurat)
                             {{ $nomorSurat['nomor_surat'] }}
                         @else
-                            <form class="flex items-center gap-2 d-flex"
-                                action="{{ route('data-pengajuan.add-nomor-surat', ['id' => $pengajuan->id]) }}"
-                                method="POST">
-                                @csrf
-                                <input name="nomor_surat" type="text" class="form-control"
-                                    placeholder="Masukkan Nomor Surat">
-                                <button class="btn btn-primary w-max flex-shrink-0">Tambah Nomor Surat</button>
-                            </form>
+                            @if (session('role')['is_admin'] ?? false)
+                                <form class="flex items-center gap-2 d-flex"
+                                    action="{{ route('data-pengajuan.add-nomor-surat', ['id' => $pengajuan->id]) }}"
+                                    method="POST">
+                                    @csrf
+                                    <input name="nomor_surat" type="text" class="form-control"
+                                        placeholder="Masukkan Nomor Surat">
+                                    <button class="btn btn-primary w-max flex-shrink-0">Tambah Nomor Surat</button>
+                                </form>
+                            @else
+                                <span class="text-muted">Belum ada nomor surat</span>
+                            @endif
                         @endif
                     </td>
-                </tr>
+                </tr>                
                 <tr>
                     <td><strong>Data</strong></td>
                 </tr>
@@ -100,14 +104,14 @@
                             <input type="hidden" name="status" value="rejected">
                             <input type="hidden" name="value" value="false">
                             @if (session()->has('role'))
-                        @php
-                            $roles = session('role'); // array asosiatif
-                            // Ambil key yang value-nya true saja
-                            $activeRoles = array_keys(array_filter($roles, fn($value) => $value === true));
-                            $roleString = implode(',', $activeRoles);
-                        @endphp
-                        <input type="hidden" name="role" value="{{ $roleString }}">
-                    @endif
+                                @php
+                                    $roles = session('role'); // array asosiatif
+                                    // Ambil key yang value-nya true saja
+                                    $activeRoles = array_keys(array_filter($roles, fn($value) => $value === true));
+                                    $roleString = implode(',', $activeRoles);
+                                @endphp
+                                <input type="hidden" name="role" value="{{ $roleString }}">
+                            @endif
 
                             <div class="modal-content">
                                 <div class="modal-header">

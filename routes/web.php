@@ -85,6 +85,7 @@ Route::group(['prefix' => 'pengajuan'], function () {
     Route::put('/edit/{id}', [PengajuanController::class, 'update'])->name('data-pengajuan.update');
     Route::post('/verifikasi/{id}', [PengajuanController::class, 'verifikasi'])->name('data-pengajuan.verifikasi');
     Route::delete('/delete/{id}', [PengajuanController::class, 'destroy'])->name('data-pengajuan.delete');
+    Route::get('/data-pengajuan/cetak-pdf', [PengajuanController::class, 'cetakPDF'])->name('data-pengajuan.cetak-pdf');
 });
 
 /**

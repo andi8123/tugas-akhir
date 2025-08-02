@@ -100,6 +100,19 @@
                     </select>
                 </div>
 
+                <div class="mb-3">
+                    <label for="minimum_semester" class="form-label">Minimum Semester Pengajuan</label>
+                    <select name="minimum_semester" id="minimum_semester" class="form-select" required>
+                        <option value="">-- Pilih Semester --</option>
+                        @for ($i = 1; $i <= 8; $i++)
+                            <option value="{{ $i }}"
+                                {{ old('minimum_semester', $masterPengajuan->minimum_semester) == $i ? 'selected' : '' }}>
+                                Semester {{ $i }}
+                            </option>
+                        @endfor
+                    </select>
+                </div>
+
                 {{-- Buttons --}}
                 <button type="submit" class="btn btn-primary">Simpan Perubahan</button>
                 <a href="{{ route('master-pengajuan.index') }}" class="btn btn-secondary">Batal</a>

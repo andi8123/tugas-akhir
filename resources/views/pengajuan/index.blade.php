@@ -5,6 +5,89 @@
 @section('content')
     <div class="container mt-4">
         <div class="card p-4">
+            @php
+                $role = session('role', []);
+                $roleName = 'User'; // default
+
+                if (!empty($role)) {
+                    if (!empty($role['is_mhs'])) {
+                        $roleName = 'Mahasiswa';
+                    } elseif (!empty($role['is_doswal'])) {
+                        $roleName = 'Dosen Wali';
+                    } elseif (!empty($role['is_dosen'])) {
+                        $roleName = 'Dosen';
+                    } elseif (!empty($role['is_prodi'])) {
+                        $roleName = 'Prodi';
+                    } elseif (!empty($role['is_admin'])) {
+                        $roleName = 'Admin';
+                    } elseif (!empty($role['is_staff'])) {
+                        $roleName = 'Staff';
+                    } elseif (!empty($role['is_wk'])) {
+                        $roleName = 'Wakil Ketua';
+                    } elseif (!empty($role['is_pimpinan'])) {
+                        $roleName = 'Pimpinan';
+                    } elseif (!empty($role['is_dospem'])) {
+                        $roleName = 'Dosen Pembimbing';
+                    } elseif (!empty($role['is_marketing'])) {
+                        $roleName = 'Marketing';
+                    } elseif (!empty($role['is_akademik'])) {
+                        $roleName = 'Akademik';
+                    } elseif (!empty($role['is_baak'])) {
+                        $roleName = 'BAAK';
+                    } elseif (!empty($role['is_secretary'])) {
+                        $roleName = 'Sekretaris';
+                    } elseif (!empty($role['is_bendahara'])) {
+                        $roleName = 'Bendahara';
+                    } elseif (!empty($role['is_kemahasiswaan'])) {
+                        $roleName = 'Kemahasiswaan';
+                    }
+                }
+            @endphp
+
+            @if ($roleName === 'Admin')
+                <form method="GET" action="{{ route('data-pengajuan.cetak-pdf') }}" target="_blank" class="row g-3 mb-3">
+                    <div class="col-md-4">
+                        <label for="jenis_pengajuan" class="form-label">Jenis Pengajuan</label>
+                        <select name="jenis_pengajuan" id="jenis_pengajuan" class="form-select">
+                            <option value="">Semua</option>
+                            @foreach (collect($pengajuanList)->unique(fn($item) => optional($item->master_pengajuan)->id) as $jenis)
+                                @if ($jenis->master_pengajuan && $jenis->master_pengajuan->master_surat)
+                                    <option value="{{ $jenis->master_pengajuan->id }}">
+                                        {{ $jenis->master_pengajuan->master_surat->nama_surat }}
+                                    </option>
+                                @endif
+                            @endforeach
+                        </select>
+                    </div>
+
+                    <div class="col-md-3">
+                        <label for="tanggal_awal" class="form-label">Tanggal Awal</label>
+                        <input type="date" name="tanggal_awal" id="tanggal_awal" class="form-control">
+                    </div>
+
+                    <div class="col-md-3">
+                        <label for="tanggal_akhir" class="form-label">Tanggal Akhir</label>
+                        <input type="date" name="tanggal_akhir" id="tanggal_akhir" class="form-control">
+                    </div>
+
+                    <div class="col-md-2">
+                        <label for="status_verifikasi" class="form-label">Status</label>
+                        <select name="status_verifikasi" id="status_verifikasi" class="form-select">
+                            <option value="">Semua</option>
+                            <option value="proses">Proses</option>
+                            <option value="ditolak">Ditolak</option>
+                            <option value="diterima">Diterima</option>
+                        </select>
+                    </div>
+
+                    <div class="col-12 text-end">
+                        <button type="submit" class="btn btn-danger mt-3">
+                            <i data-feather="printer"></i> Cetak PDF
+                        </button>
+                    </div>
+                </form>
+            @endif
+
             <div class="d-flex justify-content-between align-items-center mb-3">
                 <input id="searchInput" type="text" class="form-control w-25" placeholder="Cari Pengajuan">
             </div>

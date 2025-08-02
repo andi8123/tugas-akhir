@@ -85,7 +85,9 @@ class MasterPengajuanController extends Controller
                 'by_is_pimpinan_user_id' => 'integer|nullable',
                 'by_is_dospem_user_id' => 'integer|nullable',
                 'jenis_surat_akhir' => 'required|integer',
+                'minimum_semester' => 'required|integer|min:1|max:8',
             ]);
+            // dd($validated);
 
             MasterPengajuan::create($validated);
 
@@ -231,7 +233,9 @@ class MasterPengajuanController extends Controller
                 'is_kemahasiswaan' => 'sometimes|boolean',
                 'by_is_kemahasiswaan_user_id' => 'required_if:is_kemahasiswaan,true|integer|nullable',
                 'jenis_surat_akhir' => 'required|integer',
+                'minimum_semester' => 'required|integer|min:1|max:8',
             ]);
+            // dd($validated);
 
 
             $response = MasterPengajuan::update($id, $validated);

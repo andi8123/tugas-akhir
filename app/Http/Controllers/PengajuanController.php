@@ -11,6 +11,7 @@ use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Session;
+use Illuminate\Support\Str;
 
 class PengajuanController extends Controller
 {
@@ -164,65 +165,65 @@ class PengajuanController extends Controller
     }
 
     public function indexUser()
-{
-    try {
-        // Ambil token untuk profil
-        $token = session('token');
+    {
+        try {
+            // Ambil token untuk profil
+            $token = session('token');
 
-        $response = Http::withToken($token)
-            ->accept('application/json')
-            ->get(config('myconfig.api.base_url') . 'users/me');
+            $response = Http::withToken($token)
+                ->accept('application/json')
+                ->get(config('myconfig.api.base_url') . 'users/me');
 
-        if ($response->successful()) {
-            $responseData = $response->json();
-            $profile = $responseData['data']['profile'] ?? null;
-            $account = $responseData['data']['account'] ?? null;
-        } else {
-            $profile = null;
-            $account = null;
-        }
-
-        // Ambil semua pengajuan
-        $pengajuanList = Pengajuan::getAll();
-
-        // Ambil verifikasi dari API eksternal
-        $verifikasi = Http::get('https://680ba389d5075a76d98be950.mockapi.io/api/verifikasi');
-        $verifikasiData = $verifikasi->successful() ? $verifikasi->json() : [];
-
-        // Hitung status
-        $pengajuanDenganStatus = collect($pengajuanList)->map(function ($item) use ($verifikasiData) {
-            $verifikasiById = collect($verifikasiData)->where('pengajuan_id', $item->id);
-
-            $status = 'proses';
-            if ($verifikasiById->count()) {
-                if ($verifikasiById->contains('status', 'ditolak')) {
-                    $status = 'ditolak';
-                } elseif ($verifikasiById->every(fn($v) => $v['status'] === 'diterima')) {
-                    $status = 'diterima';
-                }
+            if ($response->successful()) {
+                $responseData = $response->json();
+                $profile = $responseData['data']['profile'] ?? null;
+                $account = $responseData['data']['account'] ?? null;
+            } else {
+                $profile = null;
+                $account = null;
             }
 
-            $item->status_verifikasi = $status;
-            return $item;
-        });
+            // Ambil semua pengajuan
+            $pengajuanList = Pengajuan::getAll();
 
-        // Hitung total berdasarkan status
-        $data = [
-            'pengajuanCount'     => $pengajuanDenganStatus->count(),
-            'pengajuanDiterima'  => $pengajuanDenganStatus->where('status_verifikasi', 'diterima')->count(),
-            'pengajuanMenunggu'  => $pengajuanDenganStatus->where('status_verifikasi', 'proses')->count(),
-            'pengajuanDitolak'   => $pengajuanDenganStatus->where('status_verifikasi', 'ditolak')->count(),
-        ];
+            // Ambil verifikasi dari API eksternal
+            $verifikasi = Http::get('https://680ba389d5075a76d98be950.mockapi.io/api/verifikasi');
+            $verifikasiData = $verifikasi->successful() ? $verifikasi->json() : [];
 
-        return view('user.index', [
-            'profile' => $profile,
-            'account' => $account,
-            'data'    => $data,
-        ]);
-    } catch (\Exception $e) {
-        return redirect()->back()->with('error', 'Gagal memuat halaman user: ' . $e->getMessage());
+            // Hitung status
+            $pengajuanDenganStatus = collect($pengajuanList)->map(function ($item) use ($verifikasiData) {
+                $verifikasiById = collect($verifikasiData)->where('pengajuan_id', $item->id);
+
+                $status = 'proses';
+                if ($verifikasiById->count()) {
+                    if ($verifikasiById->contains('status', 'ditolak')) {
+                        $status = 'ditolak';
+                    } elseif ($verifikasiById->every(fn($v) => $v['status'] === 'diterima')) {
+                        $status = 'diterima';
+                    }
+                }
+
+                $item->status_verifikasi = $status;
+                return $item;
+            });
+
+            // Hitung total berdasarkan status
+            $data = [
+                'pengajuanCount'     => $pengajuanDenganStatus->count(),
+                'pengajuanDiterima'  => $pengajuanDenganStatus->where('status_verifikasi', 'diterima')->count(),
+                'pengajuanMenunggu'  => $pengajuanDenganStatus->where('status_verifikasi', 'proses')->count(),
+                'pengajuanDitolak'   => $pengajuanDenganStatus->where('status_verifikasi', 'ditolak')->count(),
+            ];
+
+            return view('user.index', [
+                'profile' => $profile,
+                'account' => $account,
+                'data'    => $data,
+            ]);
+        } catch (\Exception $e) {
+            return redirect()->back()->with('error', 'Gagal memuat halaman user: ' . $e->getMessage());
+        }
     }
-}
 
 
 
@@ -475,5 +476,62 @@ class PengajuanController extends Controller
                 ->withInput()
                 ->with('error', 'Failed to add nomor surat: ' . $e->getMessage());
         }
+    }
+
+
+
+    public function cetakPDF(Request $request)
+    {
+        // Ambil semua data dari API
+        $data = collect(Pengajuan::getAll());
+
+        // Ambil verifikasi dari API eksternal
+        $verifikasi = Http::get('https://680ba389d5075a76d98be950.mockapi.io/api/verifikasi');
+        $verifikasiData = $verifikasi->successful() ? $verifikasi->json() : [];
+
+        // Tambahkan status verifikasi ke setiap pengajuan
+        $data = $data->map(function ($item) use ($verifikasiData) {
+            $verifikasiById = collect($verifikasiData)->where('pengajuan_id', $item->id);
+
+            $status = 'proses';
+
+            if ($verifikasiById->count() > 0) {
+                // Normalisasi semua status ke lowercase
+                $statuses = $verifikasiById->pluck('status')->map(fn($s) => strtolower($s));
+
+                if ($statuses->contains('ditolak')) {
+                    $status = 'ditolak';
+                } elseif ($statuses->every(fn($s) => $s === 'diterima')) {
+                    $status = 'diterima';
+                }
+            }
+
+            $item->status_verifikasi = $status;
+            return $item;
+        });
+
+        // Filter jika ada jenis pengajuan
+        if ($request->jenis_pengajuan && $request->jenis_pengajuan !== 'all') {
+            $data = $data->where('master_pengajuan.id', $request->jenis_pengajuan);
+        }
+
+        // Filter berdasarkan tanggal dibuat
+        if ($request->tanggal_awal && $request->tanggal_akhir) {
+            $data = $data->filter(function ($item) use ($request) {
+                $created = \Carbon\Carbon::parse($item->created_at)->format('Y-m-d');
+                return $created >= $request->tanggal_awal && $created <= $request->tanggal_akhir;
+            });
+        }
+
+        // ✅ Filter berdasarkan status verifikasi (ditambahkan di sini)
+        if ($request->status_verifikasi && $request->status_verifikasi !== 'all') {
+            $data = $data->where('status_verifikasi', $request->status_verifikasi);
+        }
+
+        // Cetak PDF
+        $pdf = Pdf::loadView('pdf.rekap_pdf', compact('data'))
+            ->setPaper('A4', 'portrait');
+
+        return $pdf->stream('Rekapitulasi-Pengajuan.pdf');
     }
 }
